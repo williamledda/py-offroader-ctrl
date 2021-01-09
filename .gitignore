@@ -1,0 +1,6 @@
+.idea/
+/node_modules/
+__pycache__/
+
+mqtt-test.js
+.DS_Store
