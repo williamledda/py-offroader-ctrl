@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
-    <height>233</height>
+    <width>494</width>
+    <height>259</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,13 +22,13 @@
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="QLabel" name="label_5">
+    <widget class="QLabel" name="statusLabel">
      <property name="text">
       <string>Unknown</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="3" rowspan="4">
+   <item row="0" column="3" rowspan="2">
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QSlider" name="motorSlider">
@@ -83,7 +83,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="2" rowspan="2">
+   <item row="2" column="2">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QSlider" name="steeringSlider">

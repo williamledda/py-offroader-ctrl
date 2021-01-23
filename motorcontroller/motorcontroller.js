@@ -25,7 +25,7 @@ poweredUP.on("discover", async (hub) => { // Wait to discover a Hub
     client.publish("hub/status", "Connected")
     client.publish("hub/fw", hub.firmwareVersion)
     client.publish("hub/hw", hub.hardwareVersion)
-    client.publish("hub/battery", hub.batteryLevel)
+    client.publish("hub/battery", hub.batteryLevel.toString())
 
     await steerMotor.gotoRealZero(100)
     await hub.sleep(1000)

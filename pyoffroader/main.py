@@ -8,4 +8,6 @@ if __name__ == '__main__':
     widget = ui.PyXtremeW()
     widget.show()
 
-    sys.exit(app.exec_())
+    exitStatus = app.exec_()
+
+    sys.exit(exitStatus)
