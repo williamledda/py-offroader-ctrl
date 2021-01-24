@@ -2,15 +2,23 @@ const PoweredUP = require("node-poweredup");
 const poweredUP = new PoweredUP.PoweredUP();
 const mqtt = require("mqtt")
 const client = mqtt.connect("mqtt://localhost")
+let frontMotor = {}
+let rearMotor = {}
+let steerMotor = {}
+let ready = false
+let lastSteeringPower = 0
+let lastMotorPower = 0
 
-poweredUP.setMaxListeners(50)
+// Subscribe motor commands
+client.subscribe("control/motor/power")
+client.subscribe("control/steering/power")
 
 poweredUP.on("discover", async (hub) => { // Wait to discover a Hub
     console.log(`Discovered ${hub.name}!`)
     await hub.connect() // Connect to the Hub
-    const frontMotor = await hub.waitForDeviceAtPort("A") // Motor controlling front wheels on port A
-    const rearMotor  = await hub.waitForDeviceAtPort("B") // Motor controlling rear wheels on port B
-    const steerMotor = await hub.waitForDeviceAtPort("C") // Motor controlling steering on port C
+    frontMotor = await hub.waitForDeviceAtPort("A") // Motor controlling front wheels on port A
+    rearMotor  = await hub.waitForDeviceAtPort("B") // Motor controlling rear wheels on port B
+    steerMotor = await hub.waitForDeviceAtPort("C") // Motor controlling steering on port C
     console.log("Connected")
 
     console.log("Hub name        : " + hub.name)
@@ -28,24 +36,26 @@ poweredUP.on("discover", async (hub) => { // Wait to discover a Hub
     client.publish("hub/battery", hub.batteryLevel.toString())
 
     await steerMotor.gotoRealZero(100)
-    await hub.sleep(1000)
+    await hub.sleep(500)
 
     console.log("Steering right...")
     //await steerMotor.gotoAngle(90, 100)
     steerMotor.setPower(50)
-    await hub.sleep(1000)
+    await hub.sleep(500)
 
     console.log("Going to zero...")
     await steerMotor.gotoRealZero(100)
-    await hub.sleep(1000)
+    await hub.sleep(500)
 
     console.log("Steering left...")
     //await steerMotor.gotoAngle(-90, 100)
     steerMotor.setPower(-50)
-    await hub.sleep(1000)
+    await hub.sleep(500)
 
     console.log("Going to zero...")
     await steerMotor.gotoRealZero(100)
+
+    ready = true
 
     //console.log("Ramping motors to -10% then brake")
     /*frontMotor.rampPower(-10)
@@ -91,6 +101,47 @@ poweredUP.on("discover", async (hub) => { // Wait to discover a Hub
     }*/
 
 });
+
+client.on('message', async(topic, message) => {
+    if(ready) {
+        power = 0
+        if (topic === 'control/motor/power') {
+            power = -1 * parseInt(message.toString(), 10) // Moving forward negative, backward positive
+
+            if(lastMotorPower !== power) {
+                //console.log('Setting motors power to ' + message)
+                frontMotor.setPower(power)
+                rearMotor.setPower(power)
+                steerMotor.setPower(lastSteeringPower)
+                lastMotorPower = power
+            }
+        }
+        else if (topic === 'control/steering/power') {
+            power = parseInt(message.toString(), 10)
+
+            //console.log('Setting steering power to ' + power + ' Last: ' + lastSteeringPower)
+
+            if(lastSteeringPower !== power) {
+                if (power !== 0) {
+                    //console.log('Steering...')
+                    steerMotor.setPower(parseInt(message.toString(), 10))
+                } else {
+                    //console.log('Going to real zero....')
+                    //await steerMotor.gotoRealZero(10)
+                    await steerMotor.gotoAngle(0)
+                    steerMotor.setPower(0)
+                }
+                lastSteeringPower = power
+            }
+        }
+        else {
+            console.log('Unknown control command')
+        }
+    }
+    else {
+        console.log('Control command received but not connected to any hub!')
+    }
+})
 
 poweredUP.scan(); // Start scanning for Hubs
 console.log("Scanning for Hubs...");

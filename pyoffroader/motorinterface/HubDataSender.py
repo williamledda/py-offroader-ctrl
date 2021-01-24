@@ -6,11 +6,11 @@ class HubDataSender:
     def __init__(self):
         self.client = mqtt.Client(client_id="Motor_data_Sender")
 
-    def connectToHub(self):
+    def connect_to_controller(self):
         print("Connecting to Host...")
         self.client.connect(host="192.168.0.41")
 
-    def disconnectFromHub(self):
+    def disconnect_from_controller(self):
         print("Disconnecting from Host...")
         self.client.disconnect()
 
